@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Recap Script Writer (Burmese)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        body {
+            font-family: 'Padauk', sans-serif;
+        }
+        .chat-bubble-bot {
+            background-color: #e2e8f0;
+            color: #1a202c;
+            border-radius: 20px 20px 20px 5px;
+            align-self: flex-start;
+        }
+        .btn-secondary {
+            background-color: #6366f1;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background-color: #4f46e5;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+<div class="w-full max-w-2xl mx-auto bg-white rounded-2xl shadow-xl p-6 md:p-8">
+    <div class="flex items-center mb-6">
+        <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center mr-4 flex-shrink-0">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24"
+                 stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"/>
+            </svg>
+        </div>
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800">AI ဇာတ်လမ်းအကျဉ်းချုပ် ရေးသားသူ</h1>
+            <p class="text-gray-500">AI Movie Recap Script Writer</p>
+        </div>
+    </div>
+
+    <div id="chat-area" class="space-y-6">
+
+        <div class="chat-bubble-bot p-4 max-w-lg">
+            <p class="font-bold mb-2">မင်္ဂလာပါ 👋</p>
+            <p>ကျွန်တော်က AI ကိုအသုံးပြုပြီး ဇာတ်လမ်းအစအဆုံး Recap Script တွေကို ရေးပေးနိုင်ပါတယ်။ ဇာတ်ကားနာမည်နဲ့ Script အရှည်ကိုသာ ရွေးပေးပါ။</p>
+        </div>
+
+        <div id="user-form" class="bg-gray-50 p-6 rounded-lg space-y-4">
+            <div>
+                <label for="movieTitle" class="block text-sm font-medium text-gray-700 mb-1">၁။ ဇာတ်ကားနာမည် (English)</label>
+                <input type="text" id="movieTitle"
+                       class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                       placeholder="e.g., Parasite">
+            </div>
+
+            <div>
+                <label for="scriptLength" class="block text-sm font-medium text-gray-700 mb-1">၂။ Script အရှည်</label>
+                <select id="scriptLength"
+                        class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    <option value="short (3-5 minutes)">အတို (3-5 min)</option>
+                    <option value="medium (8-12 minutes)" selected>အလယ်အလတ် (8-12 min)</option>
+                    <option value="long (15+ minutes)">အရှည် (15+ min)</option>
+                </select>
+            </div>
+
+            <button id="generateBtn"
+                    class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg transition">
+                Script ရေးပါ
+            </button>
+        </div>
+
+        <div id="status-container"></div>
+
+        <div id="recap-output" class="hidden">
+            <div class="chat-bubble-bot p-6 max-w-full">
+                <h3 class="text-xl font-bold mb-3">သင့် Script အသင့်ဖြစ်ပါပြီ!</h3>
+                <textarea id="script-content"
+                          class="w-full h-96 bg-white p-4 rounded-lg border border-gray-200 text-sm whitespace-pre-wrap"
+                          readonly></textarea>
+
+                <button id="copyBtn"
+                        class="mt-4 bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg text-sm">
+                    Copy
+                </button>
+                <span id="copy-success" class="text-green-600 ml-2 hidden">ကူးပြီးပါပြီ!</span>
+            </div>
+        </div>
+
+        <div id="post-generation-features" class="hidden bg-gray-50 p-6 rounded-lg space-y-4">
+            <h3 class="text-lg font-bold text-gray-800">Video Pack Tools</h3>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <button id="generateVideoPackBtn"
+                        class="w-full btn-secondary font-bold py-3 px-4 rounded-lg transition">
+                    ✨ Title + Thumbnail Ideas
+                </button>
+
+                <button id="resetBtn"
+                        class="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-4 rounded-lg transition">
+                    🔁 အသစ်လုပ်မယ်
+                </button>
+            </div>
+        </div>
+
+        <div id="additional-content-status"></div>
+        <div id="additional-content-output"></div>
+    </div>
+</div>
+
+
+<script>
+    const API_URL = "https://api.openai.com/v1/responses";
+    const OPENAI_KEY = "AIzaSyAUifRy714UU7gTXvCCQkpDmznf7Pv5i-Y";  // ← မင်း key ထည့်ပါ
+
+    function showStatus(container, message, isError = false) {
+        const div = document.createElement('div');
+        div.className = `chat-bubble-bot p-4 mt-4 ${isError ? 'bg-red-100 text-red-700' : ''}`;
+        div.innerText = message;
+        container.innerHTML = "";
+        container.appendChild(div);
+    }
+
+    async function callAI(prompt, statusContainer, statusMessage) {
+        showStatus(statusContainer, statusMessage);
+
+        try {
+            const response = await fetch(API_URL, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + OPENAI_KEY
+                },
+                body: JSON.stringify({
+                    model: "gpt-4.1-mini",
+                    input: prompt
+                })
+            });
+
+            const data = await response.json();
+            statusContainer.innerHTML = "";
+
+            return data.output_text || "No response";
+
+        } catch (err) {
+            showStatus(statusContainer, "Error: " + err.message, true);
+        }
+    }
+
+    async function generateMainScript(movieTitle, scriptLength) {
+        const prompt = `
+Burmese movie recap writer အဖြစ် "${movieTitle}" ဇာတ်ကားကို 
+${scriptLength} ရှည်လျားအောင် scene-by-scene recap script တစ်ခုရေးပါ။
+Timestamp style: [MM:SS] ကို major scenes မှတင်ပါ။
+`;
+
+        return callAI(prompt, statusContainer, "Script ကို AI ပြုလုပ်နေပါသည်...");
+    }
+
+    document.getElementById('generateBtn').addEventListener('click', async () => {
+        const movieTitle = document.getElementById('movieTitle').value.trim();
+        const scriptLength = document.getElementById('scriptLength').value;
+
+        if (!movieTitle) {
+            showStatus(statusContainer, "ဇာတ်ကားနာမည် ထည့်ပါ ❗", true);
+            return;
+        }
+
+        document.getElementById('user-form').style.display = "none";
+
+        const script = await generateMainScript(movieTitle, scriptLength);
+
+        document.getElementById('script-content').value = script;
+        document.getElementById('recap-output').classList.remove("hidden");
+        document.getElementById('post-generation-features').classList.remove("hidden");
+    });
+
+    document.getElementById('copyBtn').addEventListener('click', () => {
+        const text = document.getElementById('script-content');
+        text.select();
+        document.execCommand('copy');
+        document.getElementById('copy-success').classList.remove("hidden");
+
+        setTimeout(() => {
+            document.getElementById('copy-success').classList.add("hidden");
+        }, 2000);
+    });
+
+    document.getElementById('resetBtn').addEventListener('click', () => {
+        location.reload();
+    });
+</script>
+
+</body>
+</html>
